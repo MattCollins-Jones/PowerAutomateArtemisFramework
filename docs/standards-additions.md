@@ -1,179 +1,98 @@
-# Cloud Flow Coding Standards — Proposed Additions
+# Additional Standards (Draft)
 
-This document proposes new sections to complement the existing
-`Cloud-Flow-Coding-Standards` wiki page. Each section below is **draft
-guidance** — edit, tighten, or discard anything that doesn't fit your
-org's needs before merging into the main standards doc/wiki.
+This is a proposed extension to the main coding standards, covering areas that aren't discussed yet. As with the rest of the framework, this is a starting point rather than a finished set of rules, so feel free to edit the wording, change the examples or drop anything that doesn't fit how your organisation works before merging this into the main page.
 
----
+# Retry Policies
 
-## 1. Retry Policies
+By default, actions that call an external service (an API, a connector) will retry on failure using the platform default. It's worth being deliberate about this instead of leaving it as-is, particularly for anything calling a third party.
 
-Configure explicit retry policies on actions that call external services,
-rather than relying solely on Scope-level try/catch.
+For most connector/HTTP actions calling out to an API, an Exponential retry policy with a count of 4, a minimum interval of 5 seconds and a maximum interval of an hour is a sensible starting point. This gives a transient failure (a timeout, a 429, a blip in the other system) a chance to resolve itself without you having to build that logic yourself in a Scope.
 
-- Default retry policy for HTTP / connector actions calling external APIs:
-  `Exponential Interval`, count `4`, minimum interval `PT5S`, maximum
-  interval `PT1H`.
-- Use `None` only for actions that are explicitly non-idempotent (e.g.
-  sending an email, creating a record) where a silent retry could cause
-  duplicates — instead handle failure explicitly in the Catch scope.
-- Document the chosen retry policy in the action's description if it
-  deviates from the default, so reviewers know it was a deliberate choice.
+Where an action is not safe to retry automatically, for example sending an email or creating a record, where a retry could create a duplicate, set the retry policy to None and rely on your Scope/Catch error handling instead to decide what happens on failure.
 
-```json
-"retryPolicy": {
-  "type": "exponential",
-  "count": 4,
-  "interval": "PT5S",
-  "maximumInterval": "PT1H"
-}
-```
+| Good Example | Good Reason | Bad Example | Bad Reason |
+|--------------|-------------|-------------|------------|
+|Retry Policy: Exponential, Count 4, Interval PT5S| Gives transient errors a chance to resolve, sensible defaults for most APIs| Retry Policy: Default (left unset)| No thought given to whether the action should retry, or how|
+|Retry Policy: None, on a Send an Email action| Prevents duplicate emails being sent on a retried action| Retry Policy: Exponential, on a Create Row action with no idempotency check| Could create multiple duplicate records if the create succeeds but the response times out|
 
-## 2. Secure Inputs / Outputs
+If you deviate from these defaults for a specific action, it's worth adding a Note to the action explaining why, so the next person to look at the flow understands it was a deliberate choice and not an oversight.
 
-Mark sensitive data at the action level so it's redacted from run history.
+# Secure Inputs and Outputs
 
-- Any action handling credentials, tokens, personal data, or secrets must
-  have **Secure Inputs** and/or **Secure Outputs** enabled (Settings gear
-  on the action → Secure Inputs/Outputs).
-- This applies in addition to storing the secret itself in Key Vault —
-  Key Vault protects the secret at rest, Secure Inputs/Outputs protects it
-  from appearing in the flow's run history/telemetry.
-- Flag in code review: any action referencing an Environment Variable or
-  Key Vault secret should have secure inputs/outputs considered.
+Some actions in a flow will handle data that shouldn't be visible in the run history, this includes passwords, tokens, or other personal/sensitive data. Power Automate lets you mark an action's inputs and/or outputs as Secure, from the Settings (cog icon) on the action, which redacts them from the run history.
 
-## 3. Concurrency Control
+This is a different concern to storing secrets in Key Vault, mentioned in the Environment Variables section. Key Vault protects where the secret lives, Secure Inputs/Outputs protects what appears in the flow's run telemetry once it's been used. Both should be considered together, if you're pulling a secret out of Key Vault or an Environment Variable and using it in an action, that action's inputs and/or outputs should usually be marked Secure.
 
-Set explicit concurrency behavior instead of leaving defaults unconsidered.
+# Concurrency Control
 
-- **Apply to Each**: default concurrency is off (sequential). Only enable
-  concurrency (and set a degree, e.g. 5–20) when loop iterations are
-  independent of each other and the downstream system can handle parallel
-  calls (check API rate limits first).
-- **Trigger concurrency control**: for triggers that may fire in bursts
-  (e.g. Dataverse row triggers), consider enabling trigger concurrency
-  control and setting a `degreeOfParallelism` to avoid overwhelming
-  downstream systems or hitting connector throttling.
-- Document the chosen concurrency degree and the reasoning (e.g. "API X
-  rate limit is 10 req/s, set to 5 for headroom") in the action/trigger
-  description.
+Apply to Each loops run sequentially by default, one iteration at a time. This is usually the safest option, but for loops where each iteration doesn't depend on the others, you can turn on concurrency control and pick a degree (how many iterations run at once).
 
-## 4. Pagination & Large Data Handling
+Before turning this on, check what the downstream system can actually handle. If you're calling an API with a rate limit of 10 requests a second, setting your concurrency degree to 5 gives you some headroom, setting it higher could just get you throttled instead of speeding anything up.
 
-- Avoid unbounded "get all records" calls. When using `List rows`
-  (Dataverse), `Get items` (SharePoint), or similar, set an explicit
-  `Top Count` and enable **Pagination** with a sane `Threshold` rather
-  than defaulting to "all records."
-- For flows that may process large result sets, prefer a paged/batched
-  processing pattern (e.g. loop with `skiptoken`/paging cursor) over
-  loading everything into memory in one action.
-- Document the expected maximum record volume for each data-fetching
-  action so future maintainers know if the pagination settings still hold.
+Triggers can also have concurrency control applied, this is worth considering for triggers that might fire in bursts, for example a Dataverse trigger on a table that gets bulk updated, so you don't end up with dozens of flow runs hammering the same downstream system at once.
 
-## 5. Flow Run Duration & Timeout Limits
+Whatever degree you land on, it's worth noting the reasoning next to the setting (in the action or trigger's Note), so it's clear this was a considered decision and not just left on a default.
 
-- Cloud flows have a maximum run duration of 30 days (default) — flows
-  expected to run long (e.g. waiting on approvals) should have this
-  documented explicitly, along with what happens if the timeout is hit.
-- Set explicit **action-level timeouts** (`limit.timeout`, ISO 8601
-  duration) on any HTTP/connector call that could hang, rather than
-  relying on the connector's default (which can be very long).
-- Standard default: `PT1M` for internal API calls, `PT5M` for
-  external/third-party APIs unless a longer duration is justified and
-  documented.
+# Pagination and Large Data Volumes
 
-```json
-"limit": {
-  "timeout": "PT5M"
-}
-```
+When retrieving records with actions like List Rows (Dataverse) or Get Items (SharePoint), avoid just leaving these to pull back everything. Set an explicit Top Count and turn on Pagination with a sensible Threshold, rather than defaulting to "get everything".
 
-## 6. Child Flow Contracts
+If a flow is likely to deal with a genuinely large number of records, consider a paged approach, looping through using a paging cursor/skiptoken, rather than trying to bring everything back in a single action. This keeps the flow more predictable and avoids hitting connector limits as your data grows.
 
-For any child flow invoked via HTTP trigger or "Run a Child Flow":
+It's worth noting, in the action or the flow description, roughly how many records this is expected to deal with, so if that volume grows significantly over time, whoever maintains the flow knows to revisit the pagination settings.
 
-- Document the expected **input schema** (required/optional fields, types)
-  and **output schema** in the flow's description or a linked doc.
-- Version the contract — if breaking changes are made to inputs/outputs,
-  bump the child flow's version suffix (per existing naming convention)
-  rather than silently changing the contract for existing callers.
-- Prefer a versioned trigger schema over free-form JSON so callers get
-  validation errors early rather than runtime failures downstream.
+# Flow Run Duration and Timeouts
 
-## 7. DLP (Data Loss Prevention) Considerations
+Cloud flows have a maximum run duration (30 days by default). Most flows won't get anywhere near this, but if you're building something that's expected to run for a long time, for example waiting on an approval, it's worth documenting this in the flow description, along with what should happen if that limit is ever hit.
 
-- Before introducing a new connector to a flow, check the environment's
-  DLP policy to confirm the connector's data group (Business/
-  Non-Business/Blocked) doesn't conflict with connectors already used in
-  the same flow.
-- Flows that mix a Business-grouped connector (e.g. Dataverse, SQL) with a
-  Non-Business one (e.g. Twitter) in the same flow will be blocked by
-  default DLP policies — validate this at design time, not at deployment.
-- Document any DLP exceptions/exemptions granted for a flow's connectors
-  in the flow description.
+Separately to the overall flow duration, individual actions calling out to an API can hang far longer than you'd want if left unconfigured. Set an explicit timeout on the action (Settings > Timeout, in ISO 8601 duration format, e.g. PT5M for 5 minutes) rather than relying on the connector's own default. A minute is usually enough for an internal/first-party call, five minutes is a reasonable starting point for a third-party API, longer than that should be a conscious decision, not an accident.
 
-## 8. Testing Strategy
+# Child Flow Contracts
 
-- Before promoting a flow beyond Dev, run it via the **Test** button with
-  representative sample data covering: happy path, at least one expected
-  error path (to validate Scope/Catch handling), and any documented edge
-  cases (e.g. boundary values like the 2025/2026 year check pattern).
-- Where flows depend on external connectors, prefer testing against a
-  **staging/sandbox connection** in Dev/Test environments rather than
-  production endpoints, swapped via environment variables or connection
-  references at deployment time.
-- Maintain a lightweight test-case list (inputs + expected output) per
-  flow, stored alongside the flow's documentation, so regression testing
-  after changes is repeatable.
+The main standards already cover naming Child flows so they're easy to identify. It's also worth documenting what a Child flow expects as an input, and what it returns, particularly for anything triggered over HTTP or via Run a Child Flow.
 
-## 9. Deployment Settings & Multi-Environment Configuration
+This doesn't need to be anything formal, a note in the flow description or a short section on the linked ticket/PBI is enough, listing the fields expected in and out, which are required, and their types. This saves whoever is calling the Child flow from having to open it up and reverse engineer the schema.
 
-- Maintain a `deployment-settings.json` per target environment
-  (Dev/Test/Prod), checked into source control, listing:
-  - Connection reference logical names → target connection IDs per
-    environment.
-  - Environment variable values per environment.
-- Use `pac solution create-settings` to generate the template, and keep it
-  updated whenever a new connection reference or environment variable is
-  added to the solution.
-- Never commit connection **secrets** into `deployment-settings.json` —
-  only connection reference mappings; secrets stay in Key Vault per the
-  existing Environment Variables section.
+If you do need to make a breaking change to what a Child flow expects or returns, treat it the same as any other significant change, bump the version in the description (as covered in Flow Creation) so it's clear to anyone still calling the old contract that something's changed.
 
-## 10. Observability Beyond Logging
+# DLP Considerations
 
-- For business-critical flows, integrate run telemetry with **Application
-  Insights** (via the flow's Run History Retention + Insights connector,
-  or Dataverse Analytics) rather than relying solely on manual run-history
-  inspection.
-- Build a lightweight **Power BI dashboard** (or reuse an existing one)
-  surfacing: failed runs per flow per day, average run duration, and
-  throttled/retried action counts — to catch degradation before it
-  becomes a user-reported incident.
-- Define an alerting threshold (e.g. "> 3 failed runs in 1 hour") and
-  route it to a Teams channel or email distribution list, not just the
-  flow owner's personal notifications.
+Before adding a new connector to a flow, it's worth checking the environment's Data Loss Prevention policy first. Connectors are grouped (typically Business, Non-Business or Blocked) and mixing connectors from different groups in the same flow will get it blocked once DLP is enforced, this is much easier to catch while you're designing the flow than after it's built and ready to deploy.
 
-## 11. Webhook / HTTP Trigger Security
+If a flow needs an exception to the DLP policy for a specific connector, note this in the flow's description so it's clear this was an intentional, approved decision rather than something that will get flagged in a future review.
 
-For any flow exposed via an HTTP request trigger:
+# Testing
 
-- Do not rely on security-through-obscurity of the generated URL alone.
-- Validate inbound requests using at least one of:
-  - A shared secret passed in a header/query param, checked in a
-    condition before proceeding.
-  - HMAC signature validation if the calling system supports it (e.g.
-    GitHub webhooks, some SaaS platforms).
-  - IP allowlisting at the trigger or via Azure API Management / Front
-    Door in front of the flow, if the calling system has stable egress
-    IPs.
-- Document which method is used, and rotate any shared secret on a
-  defined schedule (align with the Service Principal secret rotation
-  guidance in the Ownership section).
+Before promoting a flow beyond a Dev environment, run it using the Test button with data that covers the happy path, at least one scenario that should trigger your error handling (to confirm the Scope/Catch actually works), and any known edge cases, similar to the year boundary check used elsewhere in this framework.
+
+Where a flow calls out to an external system, prefer testing against a sandbox/staging connection where one is available, rather than testing directly against production, swap this using Connection References/Environment Variables as the flow is promoted through environments.
+
+It's worth keeping a simple record of test cases (what you put in, what you expected to come out) alongside the flow's documentation, so if the flow changes later, someone can quickly re-run the same checks rather than working it out from scratch.
+
+# Deployment Settings
+
+For solutions being deployed across multiple environments, it's worth maintaining a deployment settings file (a JSON file listing Connection Reference logical names and Environment Variable values per environment), checked into source control alongside the solution.
+
+`pac solution create-settings` will generate a starting template for you. This should be kept up to date whenever a new Connection Reference or Environment Variable is added to the solution, so deployments to Test/UAT/Prod don't need manual intervention each time.
+
+As with the Environment Variables section, never put secrets into this file, it should only ever contain the mapping of Connection References/variable names to their environment specific values, not credentials themselves.
+
+# Monitoring Beyond Logging
+
+The Error Handling and logging section covers logging failures somewhere reviewable, for flows that are genuinely business critical, it's worth going a step further. Application Insights can be connected to give you proper telemetry on a flow beyond what's in the run history, and a simple Power BI report or dashboard (built from your logging table) can give a periodic view of failures, average run duration and how often actions are being throttled or retried, without needing someone to go and check each flow individually.
+
+If you do want proactive alerting rather than a dashboard someone checks periodically, agree a sensible threshold first (e.g. more than 3 failures in an hour), and route it to a shared Teams channel or distribution list, not an individual's inbox, so it doesn't get missed if that person is away.
+
+# HTTP Triggered Flows
+
+For any flow triggered by an HTTP request, don't rely on the generated URL being hard to guess as your only line of defence. Depending on who's calling the flow, consider one of the following:
+
+* A shared secret passed in the header or query string, checked with a Condition before the flow does anything else.
+* Signature validation, if the calling system supports it (a number of SaaS platforms sign their webhook payloads).
+* IP restrictions, either on the trigger itself or by putting something like Azure API Management or Front Door in front of the flow, where the calling system has known, stable IPs.
+
+Whichever approach is used, note it in the flow's description, and if you're using a shared secret, treat it the same as any other credential, rotate it periodically, in line with the guidance on Service Principal secrets above.
 
 ---
 
-*Generated as a gap-analysis follow-up to `Cloud-Flow-Coding-Standards.md`.
-Review each section, adjust to match your org's actual practices, and
-merge the applicable parts into the main standards page.*
+As always, this is a living document, if you disagree with any of the above or have a better way of doing something, raise it and we can update this accordingly.
