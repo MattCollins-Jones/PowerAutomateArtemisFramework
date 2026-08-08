@@ -99,24 +99,13 @@ A few pitfalls worth calling out if you're going down the manual polling route:
 |Do Until loop polling a job status, Delay 60s, Count limit 30, noted "job normally completes in under 10 mins"| Bounded, documented, and paced sensibly against the expected job duration| Do Until loop polling a job status with no count limit, no delay| Risks hammering the API and running indefinitely if the job never reaches the expected status|
 |HTTP action using the built in Asynchronous Pattern against an API that returns 202/Location| No extra actions needed, handled natively by the connector| Manually building a polling loop against an API that already supports 202/Location natively| Unnecessary complexity when the platform would have handled this already|
 
-# Child Flow Contracts
+# Child Flow Inputs and Outputs
 
 The main standards already cover naming Child flows so they're easy to identify. It's also worth documenting what a Child flow expects as an input, and what it returns, particularly for anything triggered over HTTP or via Run a Child Flow.
 
 This doesn't need to be anything formal, a note in the flow description or a short section on the linked ticket/PBI is enough, listing the fields expected in and out, which are required, and their types. This saves whoever is calling the Child flow from having to open it up and reverse engineer the schema.
 
-If you do need to make a breaking change to what a Child flow expects or returns, treat it the same as any other significant change, bump the version in the description (as covered in Flow Creation) so it's clear to anyone still calling the old contract that something's changed.
-
-# DLP Considerations
-
-Before adding a new connector to a flow, it's worth checking the environment's Data Loss Prevention policy first. Connectors are grouped (typically Business, Non-Business or Blocked) and mixing connectors from different groups in the same flow will get it blocked once DLP is enforced, this is much easier to catch while you're designing the flow than after it's built and ready to deploy.
-
-If a flow needs an exception to the DLP policy for a specific connector, note this in the flow's description so it's clear this was an intentional, approved decision rather than something that will get flagged in a future review.
-
-| Good Example | Good Reason | Bad Example | Bad Reason |
-|--------------|-------------|-------------|------------|
-|A flow using only Dataverse and Outlook, both grouped as Business| Consistent DLP grouping, won't be blocked once policy is enforced| A flow using Dataverse (Business) and Twitter (Non-Business) in the same flow| Will be blocked once DLP is enforced, requiring a rebuild to separate the connectors|
-|Flow description noting "DLP exception approved for [connector] – ref #1234"| Clear that mixing groups here was a deliberate, approved decision| No mention of DLP anywhere despite mixed connector groups| Looks like an oversight rather than an approved exception, likely to get flagged in review|
+If you do need to make a breaking change to what a Child flow expects or returns, treat it the same as any other significant change, bump the version in the description (as covered in Flow Creation) so it's clear to anyone still calling the old inputs/outputs that something's changed.
 
 # Testing
 
