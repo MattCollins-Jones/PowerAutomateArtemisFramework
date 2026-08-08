@@ -43,6 +43,17 @@ Whatever degree you land on, it's worth noting the reasoning next to the setting
 |Apply to Each, Concurrency Control On, Degree 5, calling an API rate limited to 10/sec| Speeds up the loop while leaving headroom under the API's rate limit| Apply to Each, Concurrency Control On, Degree 50, calling the same API| Will likely get throttled, causing more failures/retries than running sequentially|
 |Apply to Each, Concurrency Control Off, where each iteration updates the same parent record| Avoids race conditions where two iterations could overwrite each other's update| Apply to Each, Concurrency Control On, where each iteration updates the same parent record| Iterations run in parallel and can overwrite each other's changes|
 
+## Pieter's Method
+
+Turning on concurrency speeds up an Apply to Each, but the loop is still the bottleneck if you're using it purely to build up a variable, append to array/append to string variable actions can't run in parallel with concurrency control switched on, as each iteration needs to wait its turn to update the same variable.
+
+Pieter Veenstra (SharePains) covers a neat way round this, referred to as Pieter's method, using a Compose action inside the Apply to Each instead of appending to a variable, then referencing that Compose's output collection from outside the loop once it's finished. As there's no variable being written to on each iteration, this plays nicely with concurrency control and can give a significant speed improvement on larger loops.
+
+Worth a read if you're building anything that loops through more than a handful of records and currently leans on Append to Array/String Variable:
+
+* [Compose instead of Append to Array/String Variable inside an Apply to Each](https://sharepains.com/2019/07/09/compose-apply-to-each-power-automate/)
+* [The advanced Pieter's method (using it with other actions, and the concurrency speed-up)](https://sharepains.com/2020/03/11/pieters-method-for-advanced-in-flows/)
+
 # Pagination and Large Data Volumes
 
 When retrieving records with actions like List Rows (Dataverse) or Get Items (SharePoint), avoid just leaving these to pull back everything. Set an explicit Top Count and turn on Pagination with a sensible Threshold, rather than defaulting to "get everything".
