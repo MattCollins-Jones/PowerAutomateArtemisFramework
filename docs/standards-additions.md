@@ -23,6 +23,11 @@ Some actions in a flow will handle data that shouldn't be visible in the run his
 
 This is a different concern to storing secrets in Key Vault, mentioned in the Environment Variables section. Key Vault protects where the secret lives, Secure Inputs/Outputs protects what appears in the flow's run telemetry once it's been used. Both should be considered together, if you're pulling a secret out of Key Vault or an Environment Variable and using it in an action, that action's inputs and/or outputs should usually be marked Secure.
 
+| Good Example | Good Reason | Bad Example | Bad Reason |
+|--------------|-------------|-------------|------------|
+|HTTP action calling an API with a Key Vault secret, Secure Inputs enabled| The secret used in the request is redacted from the run history| HTTP action calling an API with a Key Vault secret, Secure Inputs left off| The secret is visible in plain text to anyone who can view the run history|
+|Update Row action writing a customer's date of birth, Secure Outputs enabled| Personal data isn't left sitting in the run history| Update Row action writing sensitive personal data, no Secure settings applied| Personal data is retained in run history for as long as retention is configured|
+
 # Concurrency Control
 
 Apply to Each loops run sequentially by default, one iteration at a time. This is usually the safest option, but for loops where each iteration doesn't depend on the others, you can turn on concurrency control and pick a degree (how many iterations run at once).
@@ -33,6 +38,11 @@ Triggers can also have concurrency control applied, this is worth considering fo
 
 Whatever degree you land on, it's worth noting the reasoning next to the setting (in the action or trigger's Note), so it's clear this was a considered decision and not just left on a default.
 
+| Good Example | Good Reason | Bad Example | Bad Reason |
+|--------------|-------------|-------------|------------|
+|Apply to Each, Concurrency Control On, Degree 5, calling an API rate limited to 10/sec| Speeds up the loop while leaving headroom under the API's rate limit| Apply to Each, Concurrency Control On, Degree 50, calling the same API| Will likely get throttled, causing more failures/retries than running sequentially|
+|Apply to Each, Concurrency Control Off, where each iteration updates the same parent record| Avoids race conditions where two iterations could overwrite each other's update| Apply to Each, Concurrency Control On, where each iteration updates the same parent record| Iterations run in parallel and can overwrite each other's changes|
+
 # Pagination and Large Data Volumes
 
 When retrieving records with actions like List Rows (Dataverse) or Get Items (SharePoint), avoid just leaving these to pull back everything. Set an explicit Top Count and turn on Pagination with a sensible Threshold, rather than defaulting to "get everything".
@@ -41,11 +51,21 @@ If a flow is likely to deal with a genuinely large number of records, consider a
 
 It's worth noting, in the action or the flow description, roughly how many records this is expected to deal with, so if that volume grows significantly over time, whoever maintains the flow knows to revisit the pagination settings.
 
+| Good Example | Good Reason | Bad Example | Bad Reason |
+|--------------|-------------|-------------|------------|
+|List Rows – List Active Accounts, Top Count 500, Pagination On, Threshold 5000| Explicit limit set, with pagination available if the table grows beyond a single page| List Rows – List Active Accounts, no Top Count set| Will attempt to return every record with no limit, which can time out or fail as the table grows|
+|Get Items – Get Open Requests, note added stating "expected ~200 rows/day"| Future maintainers know the expected volume and when to revisit the settings| Get Items – Get Open Requests, no indication of expected volume| No way to tell if current settings are still appropriate as data grows|
+
 # Flow Run Duration and Timeouts
 
 Cloud flows have a maximum run duration (30 days by default). Most flows won't get anywhere near this, but if you're building something that's expected to run for a long time, for example waiting on an approval, it's worth documenting this in the flow description, along with what should happen if that limit is ever hit.
 
 Separately to the overall flow duration, individual actions calling out to an API can hang far longer than you'd want if left unconfigured. Set an explicit timeout on the action (Settings > Timeout, in ISO 8601 duration format, e.g. PT5M for 5 minutes) rather than relying on the connector's own default. A minute is usually enough for an internal/first-party call, five minutes is a reasonable starting point for a third-party API, longer than that should be a conscious decision, not an accident.
+
+| Good Example | Good Reason | Bad Example | Bad Reason |
+|--------------|-------------|-------------|------------|
+|HTTP action calling an internal API, Timeout PT1M| Fails fast if something's gone wrong internally, rather than leaving the flow hanging| HTTP action calling an internal API, no Timeout set| Could hang for a long time on the connector's default before the flow moves on|
+|HTTP action calling a slow third-party reporting API, Timeout PT5M, noted in the action| A deliberate, documented decision to allow more time for a known-slow API| HTTP action calling a third-party API, Timeout left on a very long default with no explanation| Unclear whether the long timeout is intentional or just an oversight|
 
 # Child Flow Contracts
 
@@ -60,6 +80,11 @@ If you do need to make a breaking change to what a Child flow expects or returns
 Before adding a new connector to a flow, it's worth checking the environment's Data Loss Prevention policy first. Connectors are grouped (typically Business, Non-Business or Blocked) and mixing connectors from different groups in the same flow will get it blocked once DLP is enforced, this is much easier to catch while you're designing the flow than after it's built and ready to deploy.
 
 If a flow needs an exception to the DLP policy for a specific connector, note this in the flow's description so it's clear this was an intentional, approved decision rather than something that will get flagged in a future review.
+
+| Good Example | Good Reason | Bad Example | Bad Reason |
+|--------------|-------------|-------------|------------|
+|A flow using only Dataverse and Outlook, both grouped as Business| Consistent DLP grouping, won't be blocked once policy is enforced| A flow using Dataverse (Business) and Twitter (Non-Business) in the same flow| Will be blocked once DLP is enforced, requiring a rebuild to separate the connectors|
+|Flow description noting "DLP exception approved for [connector] – ref #1234"| Clear that mixing groups here was a deliberate, approved decision| No mention of DLP anywhere despite mixed connector groups| Looks like an oversight rather than an approved exception, likely to get flagged in review|
 
 # Testing
 
@@ -92,6 +117,11 @@ For any flow triggered by an HTTP request, don't rely on the generated URL being
 * IP restrictions, either on the trigger itself or by putting something like Azure API Management or Front Door in front of the flow, where the calling system has known, stable IPs.
 
 Whichever approach is used, note it in the flow's description, and if you're using a shared secret, treat it the same as any other credential, rotate it periodically, in line with the guidance on Service Principal secrets above.
+
+| Good Example | Good Reason | Bad Example | Bad Reason |
+|--------------|-------------|-------------|------------|
+|HTTP trigger with a shared secret checked in a Condition before proceeding| Requests without the correct secret are rejected before doing anything| HTTP trigger with no validation, relying only on the URL being hard to guess| Anyone who obtains the URL can trigger the flow|
+|Webhook flow validating an inbound signature from the calling SaaS platform| Confirms the payload genuinely came from the expected sender and hasn't been tampered with| Webhook flow accepting any payload posted to the URL| No way to tell a genuine request from a spoofed one|
 
 ---
 
