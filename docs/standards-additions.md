@@ -78,6 +78,27 @@ Separately to the overall flow duration, individual actions calling out to an AP
 |HTTP action calling an internal API, Timeout PT1M| Fails fast if something's gone wrong internally, rather than leaving the flow hanging| HTTP action calling an internal API, no Timeout set| Could hang for a long time on the connector's default before the flow moves on|
 |HTTP action calling a slow third-party reporting API, Timeout PT5M, noted in the action| A deliberate, documented decision to allow more time for a known-slow API| HTTP action calling a third-party API, Timeout left on a very long default with no explanation| Unclear whether the long timeout is intentional or just an oversight|
 
+## Long-Running Work: Async HTTP and Polling
+
+Some processes you call out to, a report being generated, a video being transcoded, a bulk export, simply won't be ready by the time a normal HTTP action's timeout is up. Rather than setting a huge timeout and hoping for the best, this is a good use case for the HTTP action's built in **Asynchronous Pattern** support, or for building your own polling loop.
+
+If the API you're calling supports the standard long-running operation pattern (returns a `202 Accepted` with a `Location`/`Retry-After` header), the HTTP action will handle this automatically, it polls the location on your behalf and only completes once the operation is actually finished. This is the preferred option where the API supports it, as it needs no extra actions building and no Do Until loop maintained.
+
+Where the API doesn't support that pattern but does give you back a job/request ID you can query for status, you'll need to build the polling yourself: kick off the job, then use a Do Until loop with a Delay action and a status-check call inside it, exiting once the status comes back as complete (or failed).
+
+A few pitfalls worth calling out if you're going down the manual polling route:
+
+* **Always cap the Do Until with a count limit as well as a condition**, not just "until status = complete". Without this, a job that never finishes (or never returns the status you're expecting) will spin until the flow's overall run duration or the Do Until's own limits are hit, wasting API calls in the meantime.
+* **Add a Delay between polls**, and don't poll too aggressively, hammering an endpoint every few seconds for a job that takes twenty minutes just burns through API calls for no benefit. A delay of 30 seconds to a few minutes, depending on how long the job normally takes, is more sensible.
+* **Each poll is its own API call**, so a job that takes an hour and is polled every 30 seconds is 120 API calls, just for polling. Factor this into the API call budgeting mentioned earlier in this framework, and consider whether an increasing (exponential-style) delay between polls is more appropriate than a fixed one.
+* **Document the expected duration and polling strategy in the flow description**, e.g. "polls export job every 60s, expected to complete within 10 minutes, hard capped at 30 polls". This means anyone looking at run history later understands why the flow took the time it did, and isn't left wondering if the long duration is a sign of something wrong.
+* **Consider whether this really needs to happen inside a single flow run at all.** For genuinely long waits (hours, not minutes), a webhook/callback from the calling system (if it supports one) avoids tying up a flow run polling for a long period, or consider splitting the "start the job" and "handle the completed job" steps into two flows joined by a webhook or scheduled check, rather than one flow sitting in a Do Until for hours.
+
+| Good Example | Good Reason | Bad Example | Bad Reason |
+|--------------|-------------|-------------|------------|
+|Do Until loop polling a job status, Delay 60s, Count limit 30, noted "job normally completes in under 10 mins"| Bounded, documented, and paced sensibly against the expected job duration| Do Until loop polling a job status with no count limit, no delay| Risks hammering the API and running indefinitely if the job never reaches the expected status|
+|HTTP action using the built in Asynchronous Pattern against an API that returns 202/Location| No extra actions needed, handled natively by the connector| Manually building a polling loop against an API that already supports 202/Location natively| Unnecessary complexity when the platform would have handled this already|
+
 # Child Flow Contracts
 
 The main standards already cover naming Child flows so they're easy to identify. It's also worth documenting what a Child flow expects as an input, and what it returns, particularly for anything triggered over HTTP or via Run a Child Flow.
