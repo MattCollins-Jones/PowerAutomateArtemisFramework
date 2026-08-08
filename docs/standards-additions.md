@@ -8,7 +8,7 @@ By default, actions that call an external service (an API, a connector) will ret
 
 For most connector/HTTP actions calling out to an API, an Exponential retry policy with a count of 4, a minimum interval of 5 seconds and a maximum interval of an hour is a sensible starting point. This gives a transient failure (a timeout, a 429, a blip in the other system) a chance to resolve itself without you having to build that logic yourself in a Scope.
 
-Where an action is not safe to retry automatically, for example sending an email or creating a record, where a retry could create a duplicate, set the retry policy to None and rely on your Scope/Catch error handling instead to decide what happens on failure.
+Where retrying an action automatically isn't safe, for example sending an email or creating a record, where retrying could send a second email or create a duplicate record, set the retry policy to None and rely on your Scope/Catch error handling instead to decide what happens on failure.
 
 | Good Example | Good Reason | Bad Example | Bad Reason |
 |--------------|-------------|-------------|------------|
