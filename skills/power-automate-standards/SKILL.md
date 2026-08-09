@@ -85,6 +85,20 @@ examples — mimic the Good examples, avoid the Bad ones.
    oversight.
 5. **Prefer platform-native controls over custom logic.** E.g. use the HTTP trigger's built-in
    authentication and Asynchronous Pattern support before building your own validation/polling.
+6. **When you don't have enough information to apply a rule confidently, ask — don't guess.**
+   This applies wherever a rule depends on context you haven't been given, for example: which
+   solution to use, whether an app/environment prefix is needed, how large the organisation is
+   (for ownership/licensing guidance), whether an Application Insights resource already exists,
+   or whether a caller can support a bearer token or a request schema. A silent guess that turns
+   out wrong is worse than a short clarifying question — this is the same failure mode that
+   caused the solution-first gate and Application Insights sections to be added above, applied
+   as a general principle rather than something to patch file-by-file as new gaps are found.
+7. **When two rules pull in different directions, say so and let the user decide** rather than
+   silently picking one. For example, Concurrency Control for throughput vs. avoiding a race
+   condition on a shared record (see [performance-and-api-calls.md](performance-and-api-calls.md)),
+   or a longer timeout for a known-slow API vs. failing fast (see
+   [timeouts-and-async-polling.md](timeouts-and-async-polling.md)). State the trade-off briefly
+   and apply whichever the user confirms, noting the reasoning on the action/trigger as usual.
 
 ## Source of truth
 

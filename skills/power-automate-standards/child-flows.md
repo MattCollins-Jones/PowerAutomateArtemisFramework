@@ -1,4 +1,4 @@
-# Child Flow Inputs and outputs
+# Child Flow Inputs and Outputs
 
 **Rule:** Beyond naming Child flows correctly (see [naming.md](naming.md)), document what a
 Child flow expects as input and what it returns as output — particularly for anything
