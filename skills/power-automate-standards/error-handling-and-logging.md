@@ -28,11 +28,28 @@ may reduce the need for a custom logging table over time.)*
 
 ## Monitoring beyond logging
 
-**Rule:** For genuinely business-critical flows, go beyond basic logging: connect Application
-Insights for real telemetry, and/or build a simple Power BI report/dashboard from your logging
-table showing failure rate, average run duration, and throttling/retry frequency.
+**Rule:** For genuinely business-critical flows, logging failures isn't enough on its own —
+recommend going further: Application Insights for real telemetry, and/or a Power BI report/
+dashboard built from the logging table (failure rate, average run duration, throttling/retry
+frequency).
+
+**Agent behaviour — this is advisory, not something to build unattended:**
+- Connecting a flow to Application Insights requires an existing App Insights resource and its
+  connection string (Flow Settings → Application Insights). Provisioning that Azure resource is
+  outside a flow-authoring agent's scope. **Ask the user whether an Application Insights
+  resource already exists for this environment/project.** If yes, and your tooling can set the
+  connection string on the flow, offer to do so. If no such resource exists, or your tooling
+  can't set it, explain this as a recommended next step for the user (or their Azure admin) to
+  do themselves — don't claim it's done, and don't silently skip mentioning it.
+- A Power BI dashboard is a separate artifact outside the flow itself. Don't attempt to build
+  one as part of authoring the flow — mention it as a follow-up recommendation instead, and
+  only build it if the user separately asks for it.
+- Only raise this recommendation once, when the flow is judged business-critical (see the
+  Error handling section above) — don't ask on every flow.
 
 If proactive alerting is wanted rather than a dashboard someone checks periodically, agree a
 sensible threshold first (e.g. more than 3 failures in an hour) and route it to a shared
 Teams channel or distribution list — never an individual's inbox, so it isn't missed if that
-person is away.
+person is away. Configuring the alert rule itself (a Condition + notification action inside the
+flow, or an Azure Monitor alert on Application Insights) is something the agent CAN typically
+build once the threshold and destination are confirmed with the user.
