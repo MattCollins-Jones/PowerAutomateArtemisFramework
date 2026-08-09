@@ -12,7 +12,7 @@ history or asking the original author.
 | Good | Good Reason | Bad | Bad Reason |
 |---|---|---|---|
 | `22/12/22 MCJ V1.0 – Initial Release` | Dated, attributed, describes the release | `Today - created flow` | No date, no attribution |
-| `15/01/23 MCJ V1.1 - Updated error handling, added notifications #12 #32` | Links to tickets with more detail | *(blank)* | No information at all |
+| `15/01/23 MCJ V1.1 – Updated error handling, added notifications #12 #32` | Links to tickets with more detail | *(blank)* | No information at all |
 
 **Notes:**
 - Don't do this for every trivial tweak — reserve it for changes that matter, especially
