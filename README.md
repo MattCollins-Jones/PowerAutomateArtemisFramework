@@ -8,6 +8,11 @@ The Power Automate Artemis Framework, is designed to help builders of Cloud Flow
 
 Jump to the [wiki here](https://github.com/MattCollins-Jones/PowerAutomateArtemisFramework/wiki) to read it.
 
+# AI Skill
+
+An AI-actionable version of these standards, structured so an AI assistant/plugin building
+Cloud Flows can load and apply them, lives in [`skills/power-automate-standards/SKILL.md`](skills/power-automate-standards/SKILL.md).
+
 # Artemis
 Artemis is the greek god of hunting or hunters, often times pictured with a bow and arrow. The Power Automate Icon looks like an arrow head and the idea of being precise or going straight to the source was the idea behind the name.
 
