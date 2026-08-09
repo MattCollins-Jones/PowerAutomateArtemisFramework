@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://user-images.githubusercontent.com/60160115/217211462-33c06205-3ae1-4967-bf7b-e6b3012e78d4.png" width="65%" height="65%">
+<img src="logo-concepts/logo.png" width="65%" height="65%">
 </p>
 
 # The Power Automate Artemis Framework
