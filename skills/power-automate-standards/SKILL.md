@@ -6,14 +6,44 @@ the [Power Automate Artemis Framework](https://github.com/MattCollins-Jones/Powe
 ## When to use this skill
 
 Use this skill any time you are creating or modifying a Power Automate cloud flow, or reviewing
-one for adherence to these standards. This includes: naming a flow/trigger/action, initialising
-a variable, adding a scope, writing an expression, adding error handling, choosing a flow owner
-or connection type, setting a retry policy, marking inputs/outputs as secure, configuring
+one for adherence to these standards. This includes: **creating a new flow (always check the
+solution-first gate below first)**, naming a flow/trigger/action, initialising a variable,
+adding a scope, writing an expression, adding error handling, choosing a flow owner or
+connection type, setting a retry policy, marking inputs/outputs as secure, configuring
 concurrency, paging a data source, setting a timeout, building a long-running/polling pattern,
 documenting a child flow's contract, or adding an HTTP trigger.
 
 Do not apply this skill to Power Apps, Power BI, or non-Microsoft automation tools — it is
 specific to Power Automate cloud flows.
+
+## CRITICAL: Solution-first creation gate
+
+This gate runs **before any other topic file** and **before any flow-creation tool/action is
+called**. It is not optional and is not just a "principle" to weigh against others — treat it
+as a hard precondition, the same way you'd treat a missing required parameter.
+
+1. Check whether the target environment has Dataverse.
+2. If it does, list the available unmanaged solutions in that environment.
+3. Ask the user to either select an existing solution, or explicitly approve creating a new one
+   — do not pick one for them silently.
+4. Do not create the flow until a solution has been selected/approved.
+5. Create the flow inside that solution, using Connection References (never raw Connections —
+   see [ownership-and-connections.md](ownership-and-connections.md)).
+
+**Never create a standalone (non-solution) flow** unless the user has explicitly approved it
+*after* being warned that it will lack solution membership and ALM support (no export/import
+between environments, no version control alongside other components).
+
+**If the environment has no Dataverse at all**, solutions aren't available — say so, and
+proceed with a standalone flow without asking again.
+
+**If your available tooling cannot create a flow directly inside a solution** (e.g. an API/tool
+that only supports standalone creation), stop and explain this limitation to the user. Do not
+silently fall back to standalone creation as if it were equivalent — that's the same failure
+this gate exists to prevent.
+
+This gate applies regardless of which topic file below you're also using — e.g. if the task is
+"add naming to a flow" but no flow exists yet, this gate still runs first.
 
 ## How to use this skill
 
@@ -44,8 +74,8 @@ examples — mimic the Good examples, avoid the Bad ones.
 
 ## Core principles (apply regardless of which topic file is loaded)
 
-1. **Solutions first.** Flows should be created inside a solution wherever possible, to enable
-   modern ALM tooling. Only skip this if the environment has no Dataverse.
+1. **Solutions first.** See the Solution-first creation gate above — this is enforced before
+   any flow is created, not just a preference to weigh against others.
 2. **Name things so the trigger and intent are obvious at a glance**, without opening the flow.
 3. **Every action is an API call.** Fewer, more deliberate actions beat many convenient ones,
    especially inside loops.
