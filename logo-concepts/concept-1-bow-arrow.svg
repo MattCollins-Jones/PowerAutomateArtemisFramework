@@ -1,0 +1,43 @@
+<svg width="980" height="420" viewBox="0 0 980 420" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="chevron" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d62c9"/>
+      <stop offset="55%" stop-color="#50b0f0"/>
+      <stop offset="100%" stop-color="#9fd6ff"/>
+    </linearGradient>
+    <linearGradient id="chevronDark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#08306b"/>
+      <stop offset="100%" stop-color="#0d62c9"/>
+    </linearGradient>
+  </defs>
+
+  <text x="490" y="55" font-family="Segoe UI, Arial, sans-serif" font-weight="700" font-size="42" fill="#1e3ea8" text-anchor="middle">Power Automate</text>
+
+  <!-- Bow (the "shaft" of the arrow now a drawn bow, string doubling as the flow line) -->
+  <g stroke="#5b7fd6" stroke-width="10" fill="none" stroke-linecap="round">
+    <path d="M120,210 C170,110 170,310 120,210" />
+  </g>
+  <!-- Bowstring / flight line -->
+  <line x1="120" y1="120" x2="640" y2="210" stroke="#5b7fd6" stroke-width="8"/>
+  <line x1="120" y1="300" x2="640" y2="210" stroke="#5b7fd6" stroke-width="8"/>
+
+  <!-- Arrow shaft -->
+  <line x1="150" y1="210" x2="660" y2="210" stroke="#5b7fd6" stroke-width="14" stroke-linecap="round"/>
+  <!-- Fletching (feathers) referencing original arrow marks -->
+  <g fill="#5b7fd6">
+    <polygon points="230,210 170,160 210,210 170,260" />
+    <polygon points="300,210 240,160 280,210 240,260" opacity="0.85"/>
+  </g>
+
+  <!-- Power Automate chevron arrowhead -->
+  <g>
+    <polygon points="660,120 780,210 660,300 660,210" fill="url(#chevronDark)"/>
+    <polygon points="660,120 880,210 780,210" fill="url(#chevron)"/>
+    <polygon points="660,300 880,210 780,210" fill="#bfe4ff"/>
+  </g>
+
+  <!-- Crescent moon accent for Artemis, sitting above the bow -->
+  <path d="M95,60 A26,26 0 1 1 95,112 A20,20 0 1 0 95,60 Z" fill="#1e3ea8"/>
+
+  <text x="490" y="380" font-family="Segoe UI, Arial, sans-serif" font-weight="700" font-size="42" fill="#1e3ea8" text-anchor="middle">Artemis Framework</text>
+</svg>
