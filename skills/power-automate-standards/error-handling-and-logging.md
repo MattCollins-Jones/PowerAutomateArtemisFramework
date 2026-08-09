@@ -16,8 +16,10 @@ step broke, without opening every action inside one large scope to find it.
 
 ## Logging
 
-**Rule:** Log errors somewhere reviewable (Dataverse table, Azure table, etc.) so failed/
-cancelled/timed-out runs can be reviewed by admins.
+**Recommendation:** Log errors somewhere reviewable (Dataverse table, Azure table, etc.) so
+failed/cancelled/timed-out runs can be reviewed by admins. This is the default expectation for
+business-critical flows; for low-stakes or throwaway flows it's reasonable to skip a logging
+table, but flag that decision to the user rather than silently omitting it.
 
 Use direct notifications (push/Teams/email) sparingly — reserve them for genuinely business-
 critical flows. A flood of notifications gets ignored. For everything else, prefer a

@@ -20,6 +20,14 @@ Triggers can also have concurrency control applied — worth considering for tri
 in bursts (e.g. a Dataverse trigger on a table that gets bulk-updated), so you don't spawn many
 concurrent runs hammering the same downstream system at once.
 
+**Agent behaviour — confirm independence before enabling:** Not every loop or trigger can
+safely run concurrently — iterations that read-modify-write the same record, shared variable,
+or external resource with ordering requirements will produce race conditions if parallelised.
+Before turning concurrency on, check (or ask the user to confirm) whether iterations are truly
+independent of each other and of run order. If it's unclear whether the downstream
+system/record is safely parallelisable, ask rather than assume — this is the same failure mode
+as the race-condition example in the table below.
+
 Always note the chosen degree, and why, on the loop/trigger.
 
 | Good | Good Reason | Bad | Bad Reason |
