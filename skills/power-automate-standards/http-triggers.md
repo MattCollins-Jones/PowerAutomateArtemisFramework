@@ -18,8 +18,12 @@ rather than being a Condition someone has to remember to add and maintain.
 
 ## Request body schema
 
-**Rule:** Regardless of authentication mode, always set a proper JSON schema for the Request
-Body — don't leave it wide open, and don't just generate it once from a sample and forget it.
+**Recommendation:** Regardless of authentication mode, set a proper JSON schema for the
+Request Body rather than leaving it wide open — this is a recommended default, not a hard
+requirement. If the caller's payload shape is genuinely unstable or not yet known, it's
+acceptable to leave the schema loose initially, but flag this to the user as a gap worth
+tightening once the shape settles, rather than leaving it unmentioned. Avoid generating the
+schema once from a sample and then forgetting about it as the payload evolves.
 
 **Why:** Power Automate validates the incoming request against this schema before any action
 runs, rejecting a malformed/unexpected payload immediately rather than causing a confusing
