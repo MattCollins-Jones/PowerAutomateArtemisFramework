@@ -107,22 +107,6 @@ This doesn't need to be anything formal, a note in the flow description or a sho
 
 If you do need to make a breaking change to what a Child flow expects or returns, treat it the same as any other significant change, bump the version in the description (as covered in Flow Creation) so it's clear to anyone still calling the old inputs/outputs that something's changed.
 
-# Testing
-
-Before promoting a flow beyond a Dev environment, run it using the Test button with data that covers the happy path, at least one scenario that should trigger your error handling (to confirm the Scope/Catch actually works), and any known edge cases, similar to the year boundary check used elsewhere in this framework.
-
-Where a flow calls out to an external system, prefer testing against a sandbox/staging connection where one is available, rather than testing directly against production, swap this using Connection References/Environment Variables as the flow is promoted through environments.
-
-It's worth keeping a simple record of test cases (what you put in, what you expected to come out) alongside the flow's documentation, so if the flow changes later, someone can quickly re-run the same checks rather than working it out from scratch.
-
-# Deployment Settings
-
-For solutions being deployed across multiple environments, it's worth maintaining a deployment settings file (a JSON file listing Connection Reference logical names and Environment Variable values per environment), checked into source control alongside the solution.
-
-`pac solution create-settings` will generate a starting template for you. This should be kept up to date whenever a new Connection Reference or Environment Variable is added to the solution, so deployments to Test/UAT/Prod don't need manual intervention each time.
-
-As with the Environment Variables section, never put secrets into this file, it should only ever contain the mapping of Connection References/variable names to their environment specific values, not credentials themselves.
-
 # Monitoring Beyond Logging
 
 The Error Handling and logging section covers logging failures somewhere reviewable, for flows that are genuinely business critical, it's worth going a step further. Application Insights can be connected to give you proper telemetry on a flow beyond what's in the run history, and a simple Power BI report or dashboard (built from your logging table) can give a periodic view of failures, average run duration and how often actions are being throttled or retried, without needing someone to go and check each flow individually.
@@ -131,17 +115,26 @@ If you do want proactive alerting rather than a dashboard someone checks periodi
 
 # HTTP Triggered Flows
 
-For any flow triggered by an HTTP request, don't rely on the generated URL being hard to guess as your only line of defence. Depending on who's calling the flow, consider one of the following:
+The When an HTTP request is received trigger now supports an authentication parameter directly on the trigger, this should be your first line of defence, rather than something bolted on inside the flow afterwards. There are three options:
+
+* **Any user in my tenant** – the default for new flows. Only requests carrying a valid bearer token for your own tenant will trigger the flow.
+* **Specific users in my tenant** – restricts this further to named users or service principal object IDs that you list on the trigger. Use this where only one or two specific systems/service accounts should ever be calling this flow.
+* **Anyone** – the old, legacy behaviour, no additional authentication, anyone with the URL can trigger it. This should be treated as the exception now, not the default, and only used where the calling system genuinely can't send a bearer token (e.g. a third party webhook that only supports a shared secret).
+
+Where the calling system is another Microsoft Entra ID (Azure AD) registered app/service and can obtain a token, prefer setting this to Any user in my tenant or Specific users in my tenant over building your own validation logic inside the flow, this is enforced before the flow even starts running, rather than being a Condition you have to remember to add and maintain yourself.
+
+For calling systems that can't authenticate this way (a lot of third party SaaS webhooks fall into this category), the trigger will need to stay on Anyone, and you'll still want to protect it yourself:
 
 * A shared secret passed in the header or query string, checked with a Condition before the flow does anything else.
 * Signature validation, if the calling system supports it (a number of SaaS platforms sign their webhook payloads).
 * IP restrictions, either on the trigger itself or by putting something like Azure API Management or Front Door in front of the flow, where the calling system has known, stable IPs.
 
-Whichever approach is used, note it in the flow's description, and if you're using a shared secret, treat it the same as any other credential, rotate it periodically, in line with the guidance on Service Principal secrets above.
+Whichever approach is used, note it in the flow's description, including which authentication mode is set on the trigger and why. If the trigger is intentionally left on Anyone, say so, and explain what's compensating for it (shared secret, signature check etc.), so this doesn't look like an oversight in a future review. If you're using a shared secret, treat it the same as any other credential, rotate it periodically, in line with the guidance on Service Principal secrets above.
 
 | Good Example | Good Reason | Bad Example | Bad Reason |
 |--------------|-------------|-------------|------------|
-|HTTP trigger with a shared secret checked in a Condition before proceeding| Requests without the correct secret are rejected before doing anything| HTTP trigger with no validation, relying only on the URL being hard to guess| Anyone who obtains the URL can trigger the flow|
+|HTTP trigger set to Specific users in my tenant, listing the calling service principal's object ID| Only the intended caller can trigger the flow, enforced by the platform before the flow runs| HTTP trigger left on Anyone with no other validation, calling system is a first party Entra ID app that could authenticate| Misses out on built in, platform enforced authentication for no reason|
+|HTTP trigger on Anyone (third party webhook, can't send a bearer token), with a shared secret checked in a Condition, noted in the flow description| A deliberate, documented compensating control for a caller that can't use OAuth| HTTP trigger on Anyone with no validation, relying only on the URL being hard to guess| Anyone who obtains the URL can trigger the flow|
 |Webhook flow validating an inbound signature from the calling SaaS platform| Confirms the payload genuinely came from the expected sender and hasn't been tampered with| Webhook flow accepting any payload posted to the URL| No way to tell a genuine request from a spoofed one|
 
 ---
