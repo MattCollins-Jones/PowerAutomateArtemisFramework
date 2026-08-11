@@ -1,0 +1,37 @@
+name: Build VS Code Extension
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies in packages/vscode
+        run: cd packages/vscode && npm install
+      
+      - name: Build .vsix package
+        run: cd packages/vscode && npm run build
+      
+      - name: Upload .vsix as release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extension
+          path: packages/vscode/*.vsix
+      
+      - name: Attach .vsix to GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: packages/vscode/*.vsix
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
