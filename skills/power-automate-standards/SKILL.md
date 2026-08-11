@@ -1,3 +1,8 @@
+---
+name: power-automate-standards
+description: Coding standards for building, modifying, and reviewing Power Automate cloud flows, based on the Power Automate Artemis Framework. Use when creating a new cloud flow (a solution-first gate runs before any flow is created), naming a flow, trigger, or action, initialising a variable, adding a scope, writing an expression, adding error handling or logging, choosing a flow owner or connection type, setting a retry policy, marking inputs or outputs as secure, configuring concurrency, paginating a data source, setting a timeout, building a long-running or polling pattern, documenting a child flow contract, or adding an HTTP trigger. Also use when reviewing an existing cloud flow for adherence to these standards. Not for Power Apps, Power BI, or non-Microsoft automation tools.
+---
+
 # Skill: Power Automate Artemis Framework Standards
 
 This skill provides the coding standards for building Power Automate Cloud Flows, based on
