@@ -1,0 +1,30 @@
+{
+  "name": "power-automate-standards",
+  "displayName": "Power Automate Standards",
+  "version": "1.2.0",
+  "description": "Comprehensive standards, best practices, and patterns for Power Automate cloud flows",
+  "author": "Matt Collins-Jones",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MattCollins-Jones/PowerAutomateArtemisFramework"
+  },
+  "license": "MIT",
+  "skills": [
+    {
+      "name": "power-automate-standards",
+      "path": "skills/power-automate-standards",
+      "description": "Complete reference guide for Power Automate standards including flow design, naming conventions, error handling, and best practices"
+    }
+  ],
+  "keywords": [
+    "power-automate",
+    "power-platform",
+    "standards",
+    "best-practices",
+    "patterns",
+    "cloud-flows"
+  ],
+  "engines": {
+    "copilot": ">=1.0.0"
+  }
+}
