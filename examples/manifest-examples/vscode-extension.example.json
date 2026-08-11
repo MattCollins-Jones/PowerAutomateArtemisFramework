@@ -1,0 +1,24 @@
+{
+  "name": "power-automate-standards",
+  "displayName": "Power Automate Standards",
+  "version": "1.1.0",
+  "publisher": "your-publisher-name",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:powerAutomateStandards.openSkill"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "powerAutomateStandards.openSkill",
+        "title": "Open Power Automate Standards Skill"
+      }
+    ]
+  }
+}

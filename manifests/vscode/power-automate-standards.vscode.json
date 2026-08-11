@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json.schemastore.org/vscode-extension",
+  "name": "power-automate-standards",
+  "displayName": "Power Automate Standards",
+  "version": "1.2.0",
+  "publisher": "mattcollinsjones",
+  "description": "VS Code packaging manifest for the Power Automate Standards skill bundle.",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:powerAutomateStandards.openSkill"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "powerAutomateStandards.openSkill",
+        "title": "Open Power Automate Standards Skill"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "powerAutomateStandardsExplorer",
+          "name": "Power Automate Standards"
+        }
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MattCollins-Jones/PowerAutomateArtemisFramework"
+  },
+  "license": "MIT"
+}

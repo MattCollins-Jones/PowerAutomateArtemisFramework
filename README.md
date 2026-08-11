@@ -13,6 +13,16 @@ Jump to the [wiki here](https://github.com/MattCollins-Jones/PowerAutomateArtemi
 An AI-actionable version of these standards, structured so an AI assistant/plugin building
 Cloud Flows can load and apply them, lives in [`skills/power-automate-standards/SKILL.md`](skills/power-automate-standards/SKILL.md).
 
+A package manifest for install/distribution is also included at
+[`power-automate-standards.manifest.json`](power-automate-standards.manifest.json). This gives the
+skill a stable identity and lets a client or registry discover the package and its entry point
+without manually copying files. For now the distribution model is a GitHub repo + tagged release;
+that makes the package easy to install and version while keeping the setup lightweight.
+
+Ecosystem packagings are collected under [`manifests/`](manifests/), including generic,
+VS Code, GitHub Copilot-style, and MCP-style metadata. These are packaging templates for a target
+runtime and are useful when you want to distribute the same skill bundle in different host formats.
+
 # Artemis
 Artemis is the greek god of hunting or hunters, often times pictured with a bow and arrow. The Power Automate Icon looks like an arrow head and the idea of being precise or going straight to the source was the idea behind the name.
 
