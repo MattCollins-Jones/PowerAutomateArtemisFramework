@@ -1,0 +1,38 @@
+{
+  "name": "power-automate-standards",
+  "displayName": "Power Automate Standards",
+  "version": "1.2.0",
+  "type": "github-copilot-skill",
+  "description": "GitHub Copilot-style packaging metadata for the Power Automate Standards skill bundle.",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/MattCollins-Jones/PowerAutomateArtemisFramework",
+    "ref": "v1.2-copilot"
+  },
+  "entryPoints": [
+    {
+      "kind": "skill",
+      "id": "power-automate-standards",
+      "title": "Power Automate Artemis Framework Standards",
+      "path": "skills/power-automate-standards/SKILL.md"
+    }
+  ],
+  "capabilities": [
+    "knowledge",
+    "coding-standards",
+    "flow-design"
+  ],
+  "compatibility": {
+    "hosts": [
+      "github-copilot",
+      "copilot-chat",
+      "custom-agent-host"
+    ]
+  },
+  "keywords": [
+    "power automate",
+    "flow",
+    "copilot",
+    "standards"
+  ]
+}

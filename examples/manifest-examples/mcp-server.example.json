@@ -1,0 +1,19 @@
+{
+  "name": "power-automate-standards",
+  "version": "1.1.0",
+  "type": "mcp-server",
+  "description": "Example MCP server manifest for a skill package that exposes Power Automate standards.",
+  "server": {
+    "transport": "stdio",
+    "command": "node",
+    "args": [
+      "./server/index.js"
+    ]
+  },
+  "tools": [
+    {
+      "name": "load_power_automate_standards",
+      "description": "Loads the Power Automate standards skill for a client session."
+    }
+  ]
+}

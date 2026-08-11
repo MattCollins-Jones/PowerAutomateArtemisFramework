@@ -1,0 +1,41 @@
+{
+  "name": "power-automate-standards",
+  "displayName": "Power Automate Standards",
+  "version": "1.2.0",
+  "type": "skill-package",
+  "description": "AI-actionable coding standards for building, modifying, and reviewing Power Automate cloud flows using the Power Automate Artemis Framework.",
+  "license": "MIT",
+  "homepage": "https://github.com/MattCollins-Jones/PowerAutomateArtemisFramework",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MattCollins-Jones/PowerAutomateArtemisFramework"
+  },
+  "entryPoints": [
+    {
+      "kind": "skill",
+      "id": "power-automate-standards",
+      "title": "Power Automate Artemis Framework Standards",
+      "path": "skills/power-automate-standards/SKILL.md",
+      "description": "Power Automate cloud flow standards for naming, variables, retries, security, pagination, and lifecycle design."
+    }
+  ],
+  "install": {
+    "type": "git",
+    "url": "https://github.com/MattCollins-Jones/PowerAutomateArtemisFramework",
+    "ref": "v1.2-generic"
+  },
+  "keywords": [
+    "power automate",
+    "flow",
+    "automation",
+    "ai skill",
+    "copilot"
+  ],
+  "compatibility": {
+    "hosts": [
+      "generic-ai-agent",
+      "copilot",
+      "claude"
+    ]
+  }
+}

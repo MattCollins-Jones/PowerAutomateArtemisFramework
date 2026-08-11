@@ -1,0 +1,41 @@
+{
+  "name": "power-automate-standards",
+  "version": "1.2.0",
+  "type": "mcp-server",
+  "description": "MCP-style package metadata for exposing the Power Automate Standards skill bundle to an MCP-compatible host.",
+  "server": {
+    "transport": "stdio",
+    "command": "node",
+    "args": [
+      "./server/index.js"
+    ]
+  },
+  "tools": [
+    {
+      "name": "load_power_automate_standards",
+      "description": "Loads the Power Automate Standards skill content for the active session.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sessionId"
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "file://skills/power-automate-standards/SKILL.md",
+      "name": "Power Automate Standards SKILL.md",
+      "mimeType": "text/markdown"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MattCollins-Jones/PowerAutomateArtemisFramework"
+  }
+}
