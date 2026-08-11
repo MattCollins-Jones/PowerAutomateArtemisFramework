@@ -1,0 +1,48 @@
+{
+  "name": "power-automate-standards",
+  "displayName": "Power Automate Standards",
+  "version": "1.2.0",
+  "type": "github-copilot-skill",
+  "description": "Power Automate coding standards and best practices for GitHub Copilot and compatible AI agents.",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/MattCollins-Jones/PowerAutomateArtemisFramework",
+    "ref": "v1.2-copilot"
+  },
+  "entryPoints": [
+    {
+      "kind": "skill",
+      "id": "power-automate-standards",
+      "title": "Power Automate Artemis Framework Standards",
+      "path": "skills/power-automate-standards/SKILL.md",
+      "description": "Comprehensive coding standards for Power Automate cloud flows"
+    }
+  ],
+  "capabilities": [
+    "knowledge",
+    "coding-standards",
+    "flow-design",
+    "flow-review"
+  ],
+  "compatibility": {
+    "hosts": [
+      "github-copilot",
+      "copilot-chat",
+      "copilot-extensions",
+      "custom-agent-host"
+    ]
+  },
+  "keywords": [
+    "power automate",
+    "flow",
+    "copilot",
+    "standards",
+    "best-practices"
+  ],
+  "metadata": {
+    "author": "Matt Collins-Jones",
+    "maintainer": "PowerAutomateArtemisFramework",
+    "license": "MIT",
+    "homepage": "https://github.com/MattCollins-Jones/PowerAutomateArtemisFramework"
+  }
+}

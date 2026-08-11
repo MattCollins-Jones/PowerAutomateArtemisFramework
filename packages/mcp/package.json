@@ -1,0 +1,56 @@
+{
+  "name": "power-automate-standards",
+  "displayName": "Power Automate Standards",
+  "version": "1.2.0",
+  "type": "mcp-server",
+  "description": "MCP server exposing the Power Automate Standards skill bundle as tools and resources.",
+  "server": {
+    "command": "node",
+    "args": [
+      "server/index.js"
+    ]
+  },
+  "tools": [
+    {
+      "name": "load_skill",
+      "description": "Load the full Power Automate Standards skill for a session.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "description": "Optional session ID for context"
+          }
+        }
+      }
+    },
+    {
+      "name": "search_standards",
+      "description": "Search the Power Automate standards for a topic or keyword.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search term (e.g., 'naming', 'retry', 'security')"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "file://skills/power-automate-standards/SKILL.md",
+      "name": "Power Automate Standards SKILL.md",
+      "mimeType": "text/markdown",
+      "description": "Main skill file with all standards and rules"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MattCollins-Jones/PowerAutomateArtemisFramework"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "power-automate-standards",
+  "version": "1.2.0",
+  "description": "AI-actionable coding standards for building, modifying, and reviewing Power Automate cloud flows.",
+  "main": "skills/power-automate-standards/SKILL.md",
+  "license": "MIT",
+  "keywords": [
+    "power-automate",
+    "flow",
+    "automation",
+    "ai-skill",
+    "copilot"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MattCollins-Jones/PowerAutomateArtemisFramework"
+  },
+  "homepage": "https://github.com/MattCollins-Jones/PowerAutomateArtemisFramework",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "skills/",
+    "manifests/",
+    "README.md",
+    "power-automate-standards.manifest.json"
+  ]
+}

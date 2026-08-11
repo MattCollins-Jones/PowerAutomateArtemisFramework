@@ -1,0 +1,44 @@
+{
+  "name": "power-automate-standards",
+  "displayName": "Power Automate Standards",
+  "version": "1.2.0",
+  "publisher": "mattcollinsjones",
+  "description": "Power Automate coding standards and best practices for AI-assisted flow design.",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:powerAutomateStandards.openSkill",
+    "onView:powerAutomateStandardsExplorer"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "powerAutomateStandards.openSkill",
+        "title": "Open Power Automate Standards Skill"
+      },
+      {
+        "command": "powerAutomateStandards.viewTopics",
+        "title": "View Power Automate Topics"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "powerAutomateStandardsExplorer",
+          "name": "Power Automate Standards"
+        }
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MattCollins-Jones/PowerAutomateArtemisFramework"
+  },
+  "homepage": "https://github.com/MattCollins-Jones/PowerAutomateArtemisFramework",
+  "license": "MIT"
+}
